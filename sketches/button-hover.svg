@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="211px" height="28px" viewBox="0 0 211 28" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 56.3 (81716) - https://sketch.com -->
+    <title>button-hover</title>
+    <desc>Created with Sketch.</desc>
+    <g id="main" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Button" transform="translate(-18.000000, -66.000000)">
+            <g id="button-hover" transform="translate(18.000000, 66.000000)">
+                <rect id="button-back-hover" stroke="#979797" stroke-width="1" fill="#BDBDBD" fill-rule="evenodd" x="0.5" y="0.5" width="210" height="27" rx="8"></rect>
+                <text id="button-label" font-family="HelveticaNeue, Helvetica Neue" font-size="14" font-weight="normal" fill="#000000">
+                    <tspan x="8" y="19">Button Label</tspan>
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>

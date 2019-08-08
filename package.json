@@ -1,0 +1,43 @@
+{
+  "name": "sv-genus",
+  "version": "1.0.0",
+  "description": "sv-genus React component",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "files": [
+    "css",
+    "es",
+    "lib",
+    "umd"
+  ],
+  "scripts": {
+    "compile-svg": "node ./compileToJson.js",
+    "build": "nwb build-react-component",
+    "clean": "nwb clean-module && nwb clean-demo",
+    "prepublishOnly": "npm run build",
+    "start": "nwb serve-react-demo",
+    "test": "nwb test-react",
+    "test:coverage": "nwb test-react --coverage",
+    "test:watch": "nwb test-react --server"
+  },
+  "dependencies": {
+    "axios": "^0.19.0",
+    "lodash": "^4.17.15"
+  },
+  "peerDependencies": {
+    "react": "16.x"
+  },
+  "devDependencies": {
+    "minimist": "^1.2.0",
+    "nwb": "0.23.x",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6"
+  },
+  "author": "",
+  "homepage": "",
+  "license": "MIT",
+  "repository": "",
+  "keywords": [
+    "react-component"
+  ]
+}

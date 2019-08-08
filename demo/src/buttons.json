@@ -1,0 +1,26 @@
+{
+  "target": "sketches",
+  "path": "/Users/davidedelhart/Documents/repos/sv-genus/sketches",
+  "svgs": {
+    "button-default": {
+      "name": "button-default",
+      "filePath": "/Users/davidedelhart/Documents/repos/sv-genus/sketches/button-default.svg",
+      "data": "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <svg width=\"211px\" height=\"28px\" viewBox=\"0 0 211 28\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"> <!-- Generator: Sketch 56.3 (81716) - https://sketch.com --> <title>button-default</title> <desc>Created with Sketch.</desc> <g id=\"main\" stroke=\"none\" stroke-width=\"1\" fill=\"none\" fill-rule=\"evenodd\"> <g id=\"Button\" transform=\"translate(-18.000000, -18.000000)\"> <g id=\"button-default\" transform=\"translate(18.000000, 18.000000)\"> <g id=\"button-back-normal\" fill=\"#D8D8D8\" fill-rule=\"evenodd\" stroke=\"#979797\" stroke-width=\"1\"> <rect id=\"Rectangle\" x=\"0.5\" y=\"0.5\" width=\"210\" height=\"27\" rx=\"8\"></rect> </g> <text id=\"button-label\" font-family=\"HelveticaNeue, Helvetica Neue\" font-size=\"14\" font-weight=\"normal\" fill=\"#000000\"> <tspan x=\"8\" y=\"19\">Button Label</tspan> </text> </g> </g> </g> </svg>"
+    },
+    "button-disabled": {
+      "name": "button-disabled",
+      "filePath": "/Users/davidedelhart/Documents/repos/sv-genus/sketches/button-disabled.svg",
+      "data": "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <svg width=\"211px\" height=\"28px\" viewBox=\"0 0 211 28\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"> <!-- Generator: Sketch 56.3 (81716) - https://sketch.com --> <title>button-disabled</title> <desc>Created with Sketch.</desc> <g id=\"main\" stroke=\"none\" stroke-width=\"1\" fill=\"none\" fill-rule=\"evenodd\"> <g id=\"Button\" transform=\"translate(-18.000000, -162.000000)\"> <g id=\"button-disabled\" transform=\"translate(18.000000, 162.000000)\"> <g id=\"button-disabled-background\" fill=\"#EFEFEF\" fill-rule=\"evenodd\" stroke=\"#979797\" stroke-width=\"1\"> <rect id=\"Rectangle\" x=\"0.5\" y=\"0.5\" width=\"210\" height=\"27\" rx=\"8\"></rect> </g> <text id=\"button-label\" font-family=\"HelveticaNeue, Helvetica Neue\" font-size=\"14\" font-weight=\"normal\" fill=\"#615D5D\"> <tspan x=\"8\" y=\"19\">Button Label</tspan> </text> </g> </g> </g> </svg>"
+    },
+    "button-down": {
+      "name": "button-down",
+      "filePath": "/Users/davidedelhart/Documents/repos/sv-genus/sketches/button-down.svg",
+      "data": "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <svg width=\"211px\" height=\"28px\" viewBox=\"0 0 211 28\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"> <!-- Generator: Sketch 56.3 (81716) - https://sketch.com --> <title>button-down</title> <desc>Created with Sketch.</desc> <g id=\"main\" stroke=\"none\" stroke-width=\"1\" fill=\"none\" fill-rule=\"evenodd\"> <g id=\"Button\" transform=\"translate(-18.000000, -114.000000)\"> <g id=\"button-down\" transform=\"translate(18.000000, 114.000000)\"> <rect id=\"button-back-down\" stroke=\"#979797\" stroke-width=\"1\" fill=\"#FAB139\" fill-rule=\"evenodd\" x=\"0.5\" y=\"0.5\" width=\"210\" height=\"27\" rx=\"8\"></rect> <text id=\"button-label\" font-family=\"HelveticaNeue, Helvetica Neue\" font-size=\"14\" font-weight=\"normal\" fill=\"#000000\"> <tspan x=\"8\" y=\"19\">Button Label</tspan> </text> </g> </g> </g> </svg>"
+    },
+    "button-hover": {
+      "name": "button-hover",
+      "filePath": "/Users/davidedelhart/Documents/repos/sv-genus/sketches/button-hover.svg",
+      "data": "<?xml version=\"1.0\" encoding=\"UTF-8\"?> <svg width=\"211px\" height=\"28px\" viewBox=\"0 0 211 28\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"> <!-- Generator: Sketch 56.3 (81716) - https://sketch.com --> <title>button-hover</title> <desc>Created with Sketch.</desc> <g id=\"main\" stroke=\"none\" stroke-width=\"1\" fill=\"none\" fill-rule=\"evenodd\"> <g id=\"Button\" transform=\"translate(-18.000000, -66.000000)\"> <g id=\"button-hover\" transform=\"translate(18.000000, 66.000000)\"> <rect id=\"button-back-hover\" stroke=\"#979797\" stroke-width=\"1\" fill=\"#BDBDBD\" fill-rule=\"evenodd\" x=\"0.5\" y=\"0.5\" width=\"210\" height=\"27\" rx=\"8\"></rect> <text id=\"button-label\" font-family=\"HelveticaNeue, Helvetica Neue\" font-size=\"14\" font-weight=\"normal\" fill=\"#000000\"> <tspan x=\"8\" y=\"19\">Button Label</tspan> </text> </g> </g> </g> </svg>"
+    }
+  }
+}
