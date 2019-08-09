@@ -5,7 +5,7 @@ export function tNum(arr){
 }
 
 export function close(n, b){
-  return (_.isNumber(n) && _.isNumber(b)) ? (Math.abs(n - b) < 0.01): false;
+  return (_.isNumber(n) && _.isNumber(b)) ? (Math.abs(n + b) < 0.01): false;
 }
 
 export function convertReactSVGDOMProperty(str) {

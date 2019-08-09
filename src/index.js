@@ -26,19 +26,10 @@ const domparser = new DOMParser();
 export default class SvGenus extends PureComponent {
   render() {
     const props = this.props;
-    let {svgTag, viewProps = {}, children = null} = props;
+    let {svgTag, viewProps = {}, svgChildren = []} = props;
     if (viewProps.isValidSVG === false) return '';
-    let View = null;
-    if (svgTag && (typeof svgTag === 'string')) {
-      View = svgFns[svgTag];
-    }
-    if (!View) {
-      console.log('!!!!!!!! SvGenus: cannot find svgFns[]', svgTag, 'props = ', props);
-      return children || null;
-    }
     console.log('returning element of type ', svgTag, 'viewProps:', viewProps, 'with children', viewProps.children);
-    return React.createElement(svgTag, viewProps, (viewProps.children || []).map((subProps, i) => {
-      console.log('subelement props:', subProps)
+    return React.createElement(svgTag, viewProps, (svgChildren).map((subProps, i) => {
       return <SvGenus key={i} {...subProps} />
     }));
   }
@@ -53,25 +44,47 @@ SvGenus.svgToTree = (element, toSvGenus = false, isDocument = false) => {
     return null;
   }
   const svgTag = element.tagName;
-  let viewProps = {...serializeAttrs(element), children: []}
+  let viewProps = {...serializeAttrs(element), }
+  let svgChildren = [];
   console.log('=============processing children of ', svgTag, '<<<<', element.children, '>>>> with props', viewProps);
   for (let i = 0; i < element.children.length; ++i){
-    viewProps.children.push(SvGenus.svgToTree(element.children[i]));
+    svgChildren.push(SvGenus.svgToTree(element.children[i]));
   }
   console.log('=============result:', viewProps);
   if (toSvGenus) {
     console.log('making function for ', svgTag, 'viewProps:', viewProps);
     return (props) => (
-        <SvGenus {...props} viewProps={viewProps} svgTag={svgTag}>
+        <SvGenus {...props} viewProps={viewProps} svgChildren={svgChildren} svgTag={svgTag}>
         </SvGenus>
       )
   } else {
     return {
       validSVG: true,
       viewProps,
-      svgTag
+      svgTag,
+      svgChildren,
     };
   }
+};
+
+SvGenus.textToStyle = (label) => {
+  const labelSpec = SvGenus.svgToTree(label);
+  const labelStyleProps = {...labelSpec.viewProps};
+  delete labelStyleProps.id;
+  const offset = labelSpec.svgChildren[0].viewProps;
+  labelStyleProps.paddingLeft = parseInt(offset.x, 10);
+  labelStyleProps.paddingRight = parseInt(offset.x, 10)
+  labelStyleProps.paddingTop = parseInt(offset.y, 10) - parseInt(labelStyleProps.fontSize, 10);
+  labelStyleProps.paddingBottom = parseInt(offset.y, 10) - parseInt(labelStyleProps.fontSize, 10);
+  console.log('labelStyleProps: ', labelStyleProps);
+  return labelStyleProps;
+}
+
+SvGenus.setSvgWidth = (spec, width, specType = 'object') => {
+  spec.viewProps.width = width;
+  const viewBox = spec.viewProps.viewBox.split(' ');
+  viewBox[2] = parseInt(width, 10);
+  spec.viewProps.viewBox = viewBox.join(' ');
 };
 
 SvGenus.sanitizeStrangeNesting = (svg) => {
@@ -108,7 +121,9 @@ SvGenus.sanitizeStrangeNesting = (svg) => {
         if (close(t1nums.x, t2nums.x) && close(t1nums.y, t2nums.y)) {
           let children = secondSubGroup.children;
           svgRootGroup.removeChild(firstSubGroup);
-          Array.from(children).forEach(child => svgRootGroup.addChild(child));
+          Array.from(children).forEach(child => svgRootGroup.appendChild(child));
+        } else {
+          console.log('--- cannot reoncile', t2nums, t1nums)
         }
       }
     } else {
