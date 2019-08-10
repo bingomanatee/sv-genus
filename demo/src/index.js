@@ -1,4 +1,10 @@
 import React, {Component, PureComponent} from 'react'
+import { withSize } from 'react-sizeme'
+const withSizeHOC = withSize({
+  refreshRate:32,
+  refreshMode: 'debounce'
+});
+
 import {render} from 'react-dom'
 import _ from 'lodash';
 
@@ -6,176 +12,138 @@ import SvGenus from '../../src'
 
 import sourceSVGs from './buttons.json';
 
-const buttonWrapperStyle = (props) => {
-  let out = {
-    position: 'relative'
-  };
-  if (props.width) {
-    out.width = props.width;
-  }
-  return out;
-}
-
-const bwiStyle = {
-  left: 0,
-  top: 0,
-  position: 'absolute',
-};
-const ButtonWrapper = ({children, width = 0}) => (
-  <div style={buttonWrapperStyle({width})}>
-    {React.Children.toArray(children).map((child, i) => (
-      <div style={bwiStyle} key={i}>
-        {child}
-      </div>
-    ))}
-  </div>
-);
+const TILE_NAMES = 'button-default,button-disabled,button-down,button-hover'.split(',');
 
 const button = async (SvGenus) => {
-  return SvGenus.defineComponent({
+  return withSizeHOC(SvGenus.defineComponent({
     sourceSVGs,
     reactClassName: 'Button',
-    extractor(elementMap) {
-      'button-default,button-disabled,button-down,button-hover'.split(',')
+    extractor(elements) {
+      TILE_NAMES
         .forEach(name => {
-          if (!elementMap.has(name)) {
+          if (!elements.has(name)) {
             return;
           }
-          const {svg} = elementMap.get(name);
-          const label = svg.querySelector('#button-label');
-          elementMap.set(name + '-label', label);
+          const {svg} = elements.get(name);
           const background = svg.querySelector('#' + name);
+          const label = svg.querySelector('#button-label');
+          if (label) {
+            elements.set(name + '-label-style', SvGenus.textToStyle(label));
+            background.removeChild(label);
+          }
 
           while (svg.firstElementChild.firstElementChild) {
             svg.firstElementChild.removeChild(svg.firstElementChild.firstElementChild)
           }
           for (let i = 0; i < background.children.length; ++i)
             svg.firstElementChild.appendChild(background.children[i]);
-          background.removeChild(label);
+          const tree = SvGenus.svgToTree({element: svg, isDocument: true});
+          const treeName = name + '-tree';
+          console.log('----- got tree: ', treeName, 'tree:', tree);
+          elements.set(treeName, tree)
         })
     },
-    compiler({elements, svgFns, SvGenus}) {
+    compiler({elements, SvGenus}) {
+      const defaultTree = elements.get('button-default-tree');
+      const buttonStyle = {
+        background: 'none',
+        color: 'inherit',
+        border: 'none',
+        font: 'inherit',
+        cursor: 'pointer',
+        outline: 'inherit',
+        'WebkitAppearance': 'none',
+        'MozAppearance': 'none',
+        appearance: 'none',
+      };
 
-      let defaultBGtree = SvGenus.svgToTree(elements.get('button-default').svg, false, true);
-      let downBGtree = SvGenus.svgToTree(elements.get('button-down').svg, false, true);
-      let disabledBGtree = SvGenus.svgToTree(elements.get('button-disabled').svg, false, true);
-      let hoverBGtree = SvGenus.svgToTree(elements.get('button-hover').svg, false, true);
-
-      const labelDefaultStyle = SvGenus.textToStyle(elements.get('button-default-label'));
-      const labelHoverStyle = SvGenus.textToStyle(elements.get('button-hover-label'));
-      const labelDownStyle = SvGenus.textToStyle(elements.get('button-down-label'));
+      const resize = (bg, width) => {
+        bg = _.cloneDeep(bg);
+        SvGenus.setSvgWidth(bg, width, 'object');
+        const rect = _.get(bg, 'svgChildren[0].svgChildren[0]');
+        if (rect && rect.svgTag === 'rect') {
+          rect.viewProps.width = width;
+        }
+        return bg;
+      };
 
       return class Button extends PureComponent {
         constructor(props) {
           super(props);
           this.textRef = React.createRef();
           this.state = {
-            wrapperStyle: {
-              width: null,
-              height: defaultBGtree.viewProps.height
-            },
-            defaultBG: _.cloneDeep(defaultBGtree),
-            downBG: _.cloneDeep(downBGtree),
-            disabledBG: _.cloneDeep(disabledBGtree),
-            hoverBG: _.cloneDeep(hoverBGtree),
-            buttonState: 'default'
+            width: null,
+            buttonState: 'default',
+            suffix: '',
           };
+        }
+
+        updateWidth() {
+          const current = this.textRef.current;
+          if (!current) {
+            return;
+          }
+          const width = current.clientWidth;
+          if (width !== this.state.width) {
+            this.setState({width});
+          }
         }
 
         componentDidMount() {
-          const width = this.textRef.current.clientWidth;
-          let {wrapperStyle, defaultBG, downBG, disabledBG, hoverBG} = this.state;
+          this.updateWidth();
+          setInterval(() => this.setState(({suffix}) => ({
+            suffix: (suffix +
+              '.')
+          })), 500)
+        }
 
-          const resize = (bg) => {
-            SvGenus.setSvgWidth(bg, width, 'object');
-            const rect = _.get(bg, 'svgChildren[0].svgChildren[0]');
-            if (rect && rect.svgTag === 'rect') {
-              rect.viewProps.width = width;
-            }
-            return _.cloneDeep(bg);
-          };
-
-          defaultBG = resize(defaultBG);
-          downBG = resize(downBG);
-          disabledBG = resize(disabledBG);
-          hoverBG = resize(hoverBG);
-
-          this.setState({
-            defaultBG,
-            downBG,
-            disabledBG,
-            hoverBG,
-            wrapperStyle: {...wrapperStyle, width}
-          });
+        componentDidUpdate() {
+          this.updateWidth();
         }
 
         currentBG() {
-          const {buttonState, defaultBG, downBG, hoverBG, disabledBG} = this.state;
-          switch (buttonState) {
-            case 'default':
-              return defaultBG;
-              break;
-
-            case 'hover':
-              return hoverBG;
-              break;
-
-            case 'down':
-              return downBG;
-              break;
+          const {buttonState, width} = this.state;
+          const key = 'button-' + buttonState + '-tree';
+          let bg = elements.get(key) || defaultTree;
+          if (width) {
+            bg = resize(bg, width);
+            console.log('new width background: ', width, bg);
+          } else {
+            console.log('no width');
           }
-          return defaultBG;
+          return SvGenus.svgToBackground(bg, 'object');
         }
 
         currentLabelStyle() {
-          switch (buttonState) {
-            case 'default':
-              return labelDefaultStyle;
-              break;
-
-            case 'hover':
-              return labelHoverStyle;
-              break;
-
-            case 'down':
-              return labelDownStyle;
-              break;
-          }
-          return labelDefaultStyle;
+          const {buttonState} = this.state;
+          return elements.get(buttonState + '-label-style') || {};
         }
 
         setButtonState(buttonState) {
-          console.log('setting button state:', buttonState);
           this.setState({buttonState});
         }
 
         render() {
           const {children} = this.props;
+          const {suffix} = this.state;
           console.log('button children:', children);
-          const {wrapperStyle} = this.state;
-
-          let bg = this.currentBG();
+          let background = this.currentBG();
           const labelStyle = this.currentLabelStyle();
-          return <div style={wrapperStyle}>
-            <ButtonWrapper>
-              <SvGenus viewProps={bg.viewProps}
-                       svgTag={bg.svgTag}
-                       svgChildren={bg.svgChildren}/>
-              <div
-                onMouseEnter={() => this.setButtonState('hover')}
-                onMouseLeave={() => this.setButtonState('default')}
-                onMouseDown={() => this.setButtonState('down')}
-                onMouseUp={() => this.setButtonState('hover')}
-                ref={this.textRef}
-                style={({whiteSpace: 'nowrap', ...labelStyle})}>
-                {children}
-              </div>
-            </ButtonWrapper>
-          </div>
+          return <button
+            onMouseEnter={() => this.setButtonState('hover')}
+            onMouseLeave={() => this.setButtonState('default')}
+            onMouseDown={() => this.setButtonState('down')}
+            onMouseUp={() => this.setButtonState('hover')}
+            ref={this.textRef} style={({
+            ...buttonStyle, ...labelStyle, background,
+            height: defaultTree.viewProps.height
+          })}>
+            {children} {suffix}
+          </button>
         }
       }
     }
-  })
+  }))
 }
 
 

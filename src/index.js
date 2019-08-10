@@ -4,22 +4,7 @@ import _ from 'lodash';
 
 const translateRE = /translate\((.*),(.*)/;
 import {close, tNum, serializeAttrs} from './utils';
-
-const svgFns = ('a,div,animate,animateMotion,animateTransform,circle,clipPath,color-profile,defs,desc,discard,ellipse,' +
-  'feBlend,feColorMatrix,feComponentTransfer,feComposite,feConvolveMatrix,feDiffuseLighting,feDisplacementMap,feDistantLight,' +
-  'feDropShadow,feFlood,feFuncA,feFuncB,feFuncG,feFuncR,feGaussianBlur,feImage,feMerge,feMergeNode,feMorphology,feOffset,' +
-  'fePointLight,feSpecularLighting,feSpotLight,feTile,feTurbulence,filter,foreignObject,g,hatch,hatchpath,image,line,' +
-  'linearGradient,marker,mask,mesh,meshgradient,meshpatch,meshrow,metadata,mpath,path,pattern,polygon,polyline,' +
-  'radialGradient,rect,script,set,solidcolor,stop,style,svg,switch,symbol,text,textPath,title,tspan,unknown,use,view').split(',')
-  .reduce((o, name) => {
-    o[name] = (props) => {
-      const children = React.Children.toArray(props.children);
-      delete props.children;
-      console.log('for ', name, 'returning for props', props, 'children', children);
-      return React.createElement(name, props, ...children);
-    };
-    return o;
-  }, {});
+import ReactDOMServer from "react-dom/server";
 
 const domparser = new DOMParser();
 
@@ -27,7 +12,9 @@ export default class SvGenus extends PureComponent {
   render() {
     const props = this.props;
     let {svgTag, viewProps = {}, svgChildren = []} = props;
-    if (viewProps.isValidSVG === false) return '';
+    if (viewProps.isValidSVG === false) {
+      return '';
+    }
     console.log('returning element of type ', svgTag, 'viewProps:', viewProps, 'with children', viewProps.children);
     return React.createElement(svgTag, viewProps, (svgChildren).map((subProps, i) => {
       return <SvGenus key={i} {...subProps} />
@@ -35,56 +22,68 @@ export default class SvGenus extends PureComponent {
   }
 }
 
-SvGenus.svgToTree = (element, toSvGenus = false, isDocument = false) => {
-  console.log('svgToTree:', element, toSvGenus, 'isD:', isDocument);
-  if (isDocument) {
-    return SvGenus.svgToTree(element.firstElementChild, toSvGenus);
-  }
+SvGenus.svgToTree = ({element, toSvGenus = false, isDocument = false, parent = null}) => {
   if (!element) {
     return null;
   }
-  const svgTag = element.tagName;
-  let viewProps = {...serializeAttrs(element), }
-  let svgChildren = [];
-  console.log('=============processing children of ', svgTag, '<<<<', element.children, '>>>> with props', viewProps);
-  for (let i = 0; i < element.children.length; ++i){
-    svgChildren.push(SvGenus.svgToTree(element.children[i]));
+
+  if (isDocument) {
+    return SvGenus.svgToTree({element: element.firstElementChild, toSvGenus});
   }
-  console.log('=============result:', viewProps);
+  const svgTag = element.tagName;
+  let viewProps = {...serializeAttrs(element)}
+  let svgChildren = [];
+  for (let i = 0; i < element.children.length; ++i) {
+    svgChildren.push(SvGenus.svgToTree({element: element.children[i]}));
+  }
   if (toSvGenus) {
     console.log('making function for ', svgTag, 'viewProps:', viewProps);
     return (props) => (
-        <SvGenus {...props} viewProps={viewProps} svgChildren={svgChildren} svgTag={svgTag}>
-        </SvGenus>
-      )
+      <SvGenus {...props} viewProps={viewProps} svgChildren={svgChildren} svgTag={svgTag}>
+      </SvGenus>
+    )
   } else {
-    return {
+    let out = {
       validSVG: true,
       viewProps,
       svgTag,
       svgChildren,
+      parent
     };
+    svgChildren.forEach(c => c.parent = out);
+    return out;
   }
 };
 
 SvGenus.textToStyle = (label) => {
-  const labelSpec = SvGenus.svgToTree(label);
+  const labelSpec = SvGenus.svgToTree({element: label});
   const labelStyleProps = {...labelSpec.viewProps};
   delete labelStyleProps.id;
   const offset = labelSpec.svgChildren[0].viewProps;
-  labelStyleProps.paddingLeft = parseInt(offset.x, 10);
-  labelStyleProps.paddingRight = parseInt(offset.x, 10)
-  labelStyleProps.paddingTop = parseInt(offset.y, 10) - parseInt(labelStyleProps.fontSize, 10);
-  labelStyleProps.paddingBottom = parseInt(offset.y, 10) - parseInt(labelStyleProps.fontSize, 10);
-  console.log('labelStyleProps: ', labelStyleProps);
+  const x = parseInt(offset.x, 10) || 0;
+  const y = parseInt(offset.y, 10) || 0;
+  const fontSize = parseInt(labelStyleProps.fontSize, 10);
+
+  labelStyleProps.paddingLeft = x;
+  labelStyleProps.paddingRight = x;
+  if (fontSize && y && (y > fontSize)) {
+    labelStyleProps.paddingTop = y - fontSize;
+    labelStyleProps.paddingBottom = y - fontSize;
+  }
   return labelStyleProps;
-}
+};
 
 SvGenus.setSvgWidth = (spec, width, specType = 'object') => {
   spec.viewProps.width = width;
   const viewBox = spec.viewProps.viewBox.split(' ');
   viewBox[2] = parseInt(width, 10);
   spec.viewProps.viewBox = viewBox.join(' ');
+};
+
+SvGenus.svgToBackground = (svg, type='object') => {
+  let svgString = (type === 'object') ? ReactDOMServer.renderToString(<SvGenus {...svg}/>) : svg.outerHTML
+  let encoded = window.btoa(svgString);
+  return "url(data:image/svg+xml;base64," + encoded + ")";
 };
 
 SvGenus.sanitizeStrangeNesting = (svg) => {
@@ -100,13 +99,6 @@ SvGenus.sanitizeStrangeNesting = (svg) => {
   const secondCount = svgRootGroup.children.length;
   const firstSubGroup = svgRootGroup.firstElementChild;
   const secondSubGroup = _.get(firstSubGroup, 'firstElementChild');
-
-  /*        console.log('------ counts:', firstCount, secondCount);
-          console.log('first group:', svgRootGroup);
-          console.log('first subGroup:', firstSubGroup);
-          console.log('second subGroup:', secondSubGroup);*/
-
-  // -------- un-nesting
 
   if (firstCount === 1 && secondCount === 1 && firstSubGroup) {
     let transform = _.get(firstSubGroup, 'attributes.transform.textContent');
@@ -136,7 +128,6 @@ SvGenus.sanitizeStrangeNesting = (svg) => {
 SvGenus.removeRootJunk = (document) => {
   Array.from(document.querySelectorAll('desc,title,#text'))
     .forEach(ele => {
-      console.log('found junk node ', ele);
       document.firstElementChild.removeChild(ele);
     });
 
@@ -182,7 +173,7 @@ SvGenus.defineComponent = ({
     .then(() => {
       let elements = extractor(elementMap) || elementMap;
       console.log('elements = ', elements);
-      SvGenus[reactClassName] = compiler({elements, svgFns, SvGenus});
+      SvGenus[reactClassName] = compiler({elements, SvGenus});
       return SvGenus;
     })
 };
