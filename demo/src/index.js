@@ -3,7 +3,8 @@ import {withSize} from 'react-sizeme'
 
 const withSizeHOC = withSize({
   refreshRate: 20,
-  refreshMode: 'debounce'
+  refreshMode: 'debounce',
+  monitorHeight: true,
 });
 
 import {render} from 'react-dom'
@@ -56,7 +57,8 @@ const button = async (SvGenus) => {
         'WebkitAppearance': 'none',
         'MozAppearance': 'none',
         appearance: 'none',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
+        display: 'inline-block'
       };
 
       function getRect(n) {
@@ -67,14 +69,13 @@ const button = async (SvGenus) => {
         }, false)
       }
 
-      const resize = (bg, width) => {
+      const resize = (bg, width, height) => {
         bg = _.cloneDeep(bg);
-        SvGenus.setSvgWidth(bg, width, 'object');
+        SvGenus.setSvgWidth(bg, width, height, 'object');
         const rect = getRect(bg);
         if (rect && rect.svgTag === 'rect') {
-          rect.viewProps.width = width - 1;
-        } else {
-          console.log('----------- cannot find rect in ', bg, 'found ', rect);
+          rect.viewProps.width = width - 2;
+         if (height) rect.viewProps.height = height - 2;
         }
         return bg;
       };
@@ -84,7 +85,6 @@ const button = async (SvGenus) => {
           super(props);
           this.textRef = React.createRef();
           this.state = {
-            width: null,
             buttonState: 'default',
             suffix: '',
           };
@@ -99,11 +99,11 @@ const button = async (SvGenus) => {
 
         currentBG() {
           const {buttonState} = this.state;
-          const {width} = this.props.size;
+          const {width, height} = this.props.size;
           const key = 'button-' + buttonState + '-tree';
           let bg = elements.get(key);
           if (width) {
-            bg = resize(bg, width - 1);
+            bg = resize(bg, width, height);
             console.log('new width background: ', width, bg);
           } else {
             console.log('no width', this.props);
@@ -134,14 +134,15 @@ const button = async (SvGenus) => {
             onMouseUp={() => this.setButtonState('hover')}
             ref={this.textRef} style={({
             ...buttonStyle,
-            height: defaultTree.viewProps.height,
-            position: 'absolute',
+            minHeight: defaultTree.viewProps.height,
           })}>
             <div style={({position: 'absolute', left: 0, top: 0, overflow: 'hidden'})}>
             {background}
             </div>
             <div style={{...labelStyle, position: 'relative' }}>
               {children} {suffix}
+              <br />
+              some stuff
             </div>
           </button>
         }

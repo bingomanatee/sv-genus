@@ -72,10 +72,12 @@ SvGenus.textToStyle = (label) => {
   return labelStyleProps;
 };
 
-SvGenus.setSvgWidth = (spec, width, specType = 'object') => {
+SvGenus.setSvgWidth = (spec, width, height,  specType = 'object') => {
   spec.viewProps.width = width;
+  spec.viewProps.height = height;
   const viewBox = spec.viewProps.viewBox.split(' ');
   viewBox[2] = parseInt(width, 10);
+  viewBox[3] = parseInt(height, 10);
   spec.viewProps.viewBox = viewBox.join(' ');
 };
 
