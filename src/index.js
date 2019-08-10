@@ -15,7 +15,6 @@ export default class SvGenus extends PureComponent {
     if (viewProps.isValidSVG === false) {
       return '';
     }
-    console.log('returning element of type ', svgTag, 'viewProps:', viewProps, 'with children', viewProps.children);
     return React.createElement(svgTag, viewProps, (svgChildren).map((subProps, i) => {
       return <SvGenus key={i} {...subProps} />
     }));

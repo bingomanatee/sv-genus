@@ -1,7 +1,8 @@
 import React, {Component, PureComponent} from 'react'
-import { withSize } from 'react-sizeme'
+import {withSize} from 'react-sizeme'
+
 const withSizeHOC = withSize({
-  refreshRate:32,
+  refreshRate: 20,
   refreshMode: 'debounce'
 });
 
@@ -15,7 +16,7 @@ import sourceSVGs from './buttons.json';
 const TILE_NAMES = 'button-default,button-disabled,button-down,button-hover'.split(',');
 
 const button = async (SvGenus) => {
-  return withSizeHOC(SvGenus.defineComponent({
+  return SvGenus.defineComponent({
     sourceSVGs,
     reactClassName: 'Button',
     extractor(elements) {
@@ -55,19 +56,30 @@ const button = async (SvGenus) => {
         'WebkitAppearance': 'none',
         'MozAppearance': 'none',
         appearance: 'none',
+        backgroundRepeat: 'no-repeat'
       };
+
+      function getRect(n) {
+        if (n.svgTag === 'rect') return n;
+        return n.svgChildren.reduce((r, n2) => {
+          if (r) return r;
+          return getRect(n2);
+        }, false)
+      }
 
       const resize = (bg, width) => {
         bg = _.cloneDeep(bg);
         SvGenus.setSvgWidth(bg, width, 'object');
-        const rect = _.get(bg, 'svgChildren[0].svgChildren[0]');
+        const rect = getRect(bg);
         if (rect && rect.svgTag === 'rect') {
-          rect.viewProps.width = width;
+          rect.viewProps.width = width - 1;
+        } else {
+          console.log('----------- cannot find rect in ', bg, 'found ', rect);
         }
         return bg;
       };
 
-      return class Button extends PureComponent {
+      return withSizeHOC(class Button extends PureComponent {
         constructor(props) {
           super(props);
           this.textRef = React.createRef();
@@ -78,45 +90,30 @@ const button = async (SvGenus) => {
           };
         }
 
-        updateWidth() {
-          const current = this.textRef.current;
-          if (!current) {
-            return;
-          }
-          const width = current.clientWidth;
-          if (width !== this.state.width) {
-            this.setState({width});
-          }
-        }
-
         componentDidMount() {
-          this.updateWidth();
-          setInterval(() => this.setState(({suffix}) => ({
+         setInterval(() => this.setState(({suffix}) => ({
             suffix: (suffix +
               '.')
           })), 500)
         }
 
-        componentDidUpdate() {
-          this.updateWidth();
-        }
-
         currentBG() {
-          const {buttonState, width} = this.state;
+          const {buttonState} = this.state;
+          const {width} = this.props.size;
           const key = 'button-' + buttonState + '-tree';
-          let bg = elements.get(key) || defaultTree;
+          let bg = elements.get(key);
           if (width) {
-            bg = resize(bg, width);
+            bg = resize(bg, width - 1);
             console.log('new width background: ', width, bg);
           } else {
-            console.log('no width');
+            console.log('no width', this.props);
           }
-          return SvGenus.svgToBackground(bg, 'object');
+          return <SvGenus {...bg} />;
         }
 
         currentLabelStyle() {
           const {buttonState} = this.state;
-          return elements.get(buttonState + '-label-style') || {};
+          return elements.get('button-' + buttonState + '-label-style') || {};
         }
 
         setButtonState(buttonState) {
@@ -124,10 +121,11 @@ const button = async (SvGenus) => {
         }
 
         render() {
-          const {children} = this.props;
+          const {children, size} = this.props;
           const {suffix} = this.state;
           console.log('button children:', children);
-          let background = this.currentBG();
+          const background = this.currentBG();
+          console.log('Background: ', background);
           const labelStyle = this.currentLabelStyle();
           return <button
             onMouseEnter={() => this.setButtonState('hover')}
@@ -135,16 +133,22 @@ const button = async (SvGenus) => {
             onMouseDown={() => this.setButtonState('down')}
             onMouseUp={() => this.setButtonState('hover')}
             ref={this.textRef} style={({
-            ...buttonStyle, ...labelStyle, background,
-            height: defaultTree.viewProps.height
+            ...buttonStyle,
+            height: defaultTree.viewProps.height,
+            position: 'absolute',
           })}>
-            {children} {suffix}
+            <div style={({position: 'absolute', left: 0, top: 0, overflow: 'hidden'})}>
+            {background}
+            </div>
+            <div style={{...labelStyle, position: 'relative' }}>
+              {children} {suffix}
+            </div>
           </button>
         }
-      }
+      });
     }
-  }))
-}
+  });
+};
 
 
 class Demo extends Component {
